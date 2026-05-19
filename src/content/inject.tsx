@@ -23,8 +23,12 @@ class VaultShieldManager {
     document.addEventListener('focusout', (e) => {
       const target = e.target as HTMLInputElement;
       if (target.tagName === 'INPUT' && target.type === 'password') {
+        // Small delay to check if focus moved to the assistant itself
         setTimeout(() => {
-          if (document.activeElement !== this.activeInput) {
+          const shadowRoot = this.container?.shadowRoot;
+          const activeInShadow = shadowRoot?.activeElement;
+          
+          if (document.activeElement !== this.activeInput && !activeInShadow) {
             this.handleBlur();
           }
         }, 200);
@@ -59,7 +63,7 @@ class VaultShieldManager {
       this.container.id = 'vault-shield-assistant-root';
       const shadow = this.container.attachShadow({ mode: 'open' });
       
-      // Inject Tailwind styles - Updated to main.css
+      // Inject Tailwind styles
       const styleLink = document.createElement('link');
       styleLink.rel = 'stylesheet';
       styleLink.href = typeof chrome !== 'undefined' && chrome.runtime ? chrome.runtime.getURL('assets/main.css') : '';
@@ -94,9 +98,20 @@ class VaultShieldManager {
         passwordValue={this.activeInput.value} 
         onApply={(val) => {
           if (this.activeInput) {
-            this.activeInput.value = val;
+            // Robust value setting for React/Vue/Angular sites
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+            if (nativeInputValueSetter) {
+              nativeInputValueSetter.call(this.activeInput, val);
+            } else {
+              this.activeInput.value = val;
+            }
+
+            // Trigger events so the website knows the value changed
             this.activeInput.dispatchEvent(new Event('input', { bubbles: true }));
             this.activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+            this.activeInput.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+            this.activeInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
+            
             this.activeInput.focus();
           }
         }}
