@@ -6,6 +6,7 @@ class VaultShieldManager {
   private activeInput: HTMLInputElement | null = null;
   private container: HTMLDivElement | null = null;
   private root: any = null;
+  private isInteracting = false;
 
   constructor() {
     this.init();
@@ -23,12 +24,9 @@ class VaultShieldManager {
     document.addEventListener('focusout', (e) => {
       const target = e.target as HTMLInputElement;
       if (target.tagName === 'INPUT' && target.type === 'password') {
-        // Small delay to check if focus moved to the assistant itself
+        // Delay blur to allow clicks on the assistant to register
         setTimeout(() => {
-          const shadowRoot = this.container?.shadowRoot;
-          const activeInShadow = shadowRoot?.activeElement;
-          
-          if (document.activeElement !== this.activeInput && !activeInShadow) {
+          if (!this.isInteracting && document.activeElement !== this.activeInput) {
             this.handleBlur();
           }
         }, 200);
@@ -63,6 +61,15 @@ class VaultShieldManager {
       this.container.id = 'vault-shield-assistant-root';
       const shadow = this.container.attachShadow({ mode: 'open' });
       
+      // Prevent blur when clicking inside the assistant
+      this.container.addEventListener('mousedown', () => {
+        this.isInteracting = true;
+      });
+      this.container.addEventListener('mouseup', () => {
+        this.isInteracting = false;
+        if (this.activeInput) this.activeInput.focus();
+      });
+
       // Inject Tailwind styles
       const styleLink = document.createElement('link');
       styleLink.rel = 'stylesheet';
@@ -71,7 +78,8 @@ class VaultShieldManager {
 
       const wrapper = document.createElement('div');
       wrapper.className = 'assistant-wrapper';
-      wrapper.style.cssText = 'position: fixed; z-index: 2147483647; pointer-events: none;';
+      // Changed pointer-events to auto so buttons can be clicked
+      wrapper.style.cssText = 'position: fixed; z-index: 2147483647; pointer-events: auto;';
       shadow.appendChild(wrapper);
 
       document.body.appendChild(this.container);
@@ -93,26 +101,28 @@ class VaultShieldManager {
   private renderAssistant() {
     if (!this.root || !this.activeInput) return;
 
+    // Capture the input reference to avoid closure issues
+    const inputRef = this.activeInput;
+
     this.root.render(
       <FloatingAssistant 
-        passwordValue={this.activeInput.value} 
+        passwordValue={inputRef.value} 
         onApply={(val) => {
-          if (this.activeInput) {
-            // Robust value setting for React/Vue/Angular sites
+          if (inputRef) {
+            // Set value using the native setter to bypass framework internal state (React/Vue)
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
             if (nativeInputValueSetter) {
-              nativeInputValueSetter.call(this.activeInput, val);
+              nativeInputValueSetter.call(inputRef, val);
             } else {
-              this.activeInput.value = val;
+              inputRef.value = val;
             }
 
             // Trigger events so the website knows the value changed
-            this.activeInput.dispatchEvent(new Event('input', { bubbles: true }));
-            this.activeInput.dispatchEvent(new Event('change', { bubbles: true }));
-            this.activeInput.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
-            this.activeInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
+            inputRef.dispatchEvent(new Event('input', { bubbles: true }));
+            inputRef.dispatchEvent(new Event('change', { bubbles: true }));
             
-            this.activeInput.focus();
+            // Refocus the input
+            inputRef.focus();
           }
         }}
       />
