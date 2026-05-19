@@ -6,14 +6,32 @@ class VaultShieldManager {
   private activeInput: HTMLInputElement | null = null;
   private container: HTMLDivElement | null = null;
   private root: any = null;
+  private isEnabled: boolean = true;
 
   constructor() {
     this.init();
   }
 
-  private init() {
+  private async init() {
+    // Initial state check
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      const result = await chrome.storage.local.get(['vaultShieldActive']);
+      this.isEnabled = result.vaultShieldActive !== false;
+
+      // Listen for state changes
+      chrome.storage.onChanged.addListener((changes) => {
+        if (changes.vaultShieldActive) {
+          this.isEnabled = changes.vaultShieldActive.newValue;
+          if (!this.isEnabled) {
+            this.handleBlur();
+          }
+        }
+      });
+    }
+
     // Monitor for focus on password fields
     document.addEventListener('focusin', (e) => {
+      if (!this.isEnabled) return;
       const target = e.target as HTMLInputElement;
       if (target.tagName === 'INPUT' && target.type === 'password') {
         this.handleFocus(target);
@@ -23,7 +41,6 @@ class VaultShieldManager {
     document.addEventListener('focusout', (e) => {
       const target = e.target as HTMLInputElement;
       if (target.tagName === 'INPUT' && target.type === 'password') {
-        // Small delay to check if focus moved to the assistant itself
         setTimeout(() => {
           const shadowRoot = this.container?.shadowRoot;
           const activeInShadow = shadowRoot?.activeElement;
@@ -40,6 +57,7 @@ class VaultShieldManager {
   }
 
   private handleFocus(input: HTMLInputElement) {
+    if (!this.isEnabled) return;
     this.activeInput = input;
     this.mountAssistant();
     input.addEventListener('input', this.handleInput);
@@ -54,6 +72,7 @@ class VaultShieldManager {
   }
 
   private handleInput = () => {
+    if (!this.isEnabled) return;
     this.renderAssistant();
   };
 
@@ -63,7 +82,6 @@ class VaultShieldManager {
       this.container.id = 'vault-shield-assistant-root';
       const shadow = this.container.attachShadow({ mode: 'open' });
       
-      // Inject Tailwind styles
       const styleLink = document.createElement('link');
       styleLink.rel = 'stylesheet';
       styleLink.href = typeof chrome !== 'undefined' && chrome.runtime ? chrome.runtime.getURL('assets/main.css') : '';
@@ -91,14 +109,13 @@ class VaultShieldManager {
   }
 
   private renderAssistant() {
-    if (!this.root || !this.activeInput) return;
+    if (!this.root || !this.activeInput || !this.isEnabled) return;
 
     this.root.render(
       <FloatingAssistant 
         passwordValue={this.activeInput.value} 
         onApply={(val) => {
           if (this.activeInput) {
-            // Robust value setting for React/Vue/Angular sites
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
             if (nativeInputValueSetter) {
               nativeInputValueSetter.call(this.activeInput, val);
@@ -106,12 +123,8 @@ class VaultShieldManager {
               this.activeInput.value = val;
             }
 
-            // Trigger events so the website knows the value changed
             this.activeInput.dispatchEvent(new Event('input', { bubbles: true }));
             this.activeInput.dispatchEvent(new Event('change', { bubbles: true }));
-            this.activeInput.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
-            this.activeInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
-            
             this.activeInput.focus();
           }
         }}
