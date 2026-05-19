@@ -64,22 +64,6 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Brute Force Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-slate-900/50 p-3 border border-slate-800">
-              <p className="text-[9px] text-slate-500 uppercase font-bold mb-1 flex items-center gap-1">
-                <Cpu className="h-3 w-3" /> Crack Attempts
-              </p>
-              <p className="text-sm font-mono font-bold text-white truncate">{analysis.crackAttempts}</p>
-            </div>
-            <div className="rounded-xl bg-slate-900/50 p-3 border border-slate-800">
-              <p className="text-[9px] text-slate-500 uppercase font-bold mb-1 flex items-center gap-1">
-                <Activity className="h-3 w-3" /> Entropy
-              </p>
-              <p className="text-sm font-mono font-bold text-white">{analysis.entropy} bits</p>
-            </div>
-          </div>
-
           {/* Warnings */}
           <AnimatePresence>
             {analysis.warnings.length > 0 && (
@@ -135,6 +119,22 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden space-y-4 pt-2"
               >
+                {/* Brute Force Stats Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-slate-900/40 p-4 border border-slate-800/50">
+                    <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2">
+                      <Cpu className="h-3 w-3 text-indigo-400" /> Crack Attempts
+                    </p>
+                    <p className="text-sm font-mono font-black text-white truncate">{analysis.crackAttempts}</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-900/40 p-4 border border-slate-800/50">
+                    <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest mb-2 flex items-center gap-2">
+                      <Activity className="h-3 w-3 text-indigo-400" /> Entropy
+                    </p>
+                    <p className="text-sm font-mono font-black text-white">{analysis.entropy} bits</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-2">
                   {analysis.threats.map((threat, i) => (
                     <ThreatCard key={i} threat={threat} />
