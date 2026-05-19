@@ -5,10 +5,7 @@ import * as en from '@zxcvbn-ts/language-en';
 const options = {
   translations: en.translations,
   graphs: common.adjacencyGraphs,
-  dictionary: {
-    ...common.dictionary,
-    ...en.dictionary,
-  },
+  dictionary: { ...common.dictionary, ...en.dictionary },
 };
 zxcvbnOptions.setOptions(options);
 
@@ -19,12 +16,8 @@ export interface AnalysisResult {
   strength: StrengthLevel;
   crackAttempts: string;
   entropy: number;
-  feedback: {
-    warning?: string;
-    suggestions: string[];
-  };
   metrics: {
-    randomness: number; // 0-100
+    randomness: number;
     guessProtection: number;
     patternSafety: number;
     attackResistance: number;
@@ -32,41 +25,22 @@ export interface AnalysisResult {
 }
 
 export const analyzePassword = (password: string): AnalysisResult => {
-  if (!password) {
-    return {
-      score: 0,
-      strength: 'Unsafe',
-      crackAttempts: '0',
-      entropy: 0,
-      feedback: { suggestions: [] },
-      metrics: { randomness: 0, guessProtection: 0, patternSafety: 0, attackResistance: 0 }
-    };
-  }
+  if (!password) return {
+    score: 0, strength: 'Unsafe', crackAttempts: '0', entropy: 0,
+    metrics: { randomness: 0, guessProtection: 0, patternSafety: 0, attackResistance: 0 }
+  };
 
   const result = zxcvbn(password);
   const score = result.score;
-  
   const strengthMap: Record<number, StrengthLevel> = {
-    0: 'Unsafe',
-    1: 'Risky',
-    2: 'Risky',
-    3: 'Secure',
-    4: 'Fortified',
+    0: 'Unsafe', 1: 'Risky', 2: 'Risky', 3: 'Secure', 4: 'Fortified',
   };
-
-  // Scientific notation for crack attempts
-  const attempts = result.guesses;
-  const crackAttempts = attempts > 1000 ? attempts.toExponential(1).replace('e+', ' × 10^') : attempts.toString();
 
   return {
     score,
     strength: strengthMap[score],
-    crackAttempts,
-    entropy: Math.round(Math.log2(attempts)),
-    feedback: {
-      warning: result.feedback.warning || undefined,
-      suggestions: result.feedback.suggestions,
-    },
+    crackAttempts: result.guesses > 1000 ? result.guesses.toExponential(1).replace('e+', ' × 10^') : result.guesses.toString(),
+    entropy: Math.round(Math.log2(result.guesses)),
     metrics: {
       randomness: Math.min(100, (result.guessesLog10 / 15) * 100),
       guessProtection: score >= 3 ? 90 : score * 25,
@@ -76,22 +50,20 @@ export const analyzePassword = (password: string): AnalysisResult => {
   };
 };
 
-export const generateSmartSuggestions = (input: string): string[] => {
-  if (!input || input.length < 2) return ['Vault#Secure!2024', 'Shield_Alpha_99', 'Cyber*Guard*7'];
+export const mutatePassword = (input: string): { balanced: string, cyber: string, fortified: string } => {
+  if (!input) return { balanced: '', cyber: '', fortified: '' };
 
-  const base = input.replace(/[^a-zA-Z0-9]/g, '');
+  const base = input.trim();
   const capitalized = base.charAt(0).toUpperCase() + base.slice(1);
   
-  const suffixes = ['Vault', 'Shield', 'Secure', 'Cyber', 'Neo', 'Alpha'];
-  const symbols = ['#', '!', '@', '*', '_', '$'];
-  const years = ['2024', '2025', '77', '07', '99'];
+  // Mutation 1: Balanced Secure (Memorable + Symbols)
+  const balanced = `${capitalized.replace(/[aA]/g, '@').replace(/[sS]/g, '$')}#${Math.floor(Math.random() * 90 + 10)}`;
 
-  const suggestions: string[] = [
-    `${capitalized}${symbols[0]}Vault${years[0]}`,
-    `${capitalized.slice(0, Math.ceil(base.length/2))}_${symbols[1]}${capitalized.slice(Math.ceil(base.length/2))}Secure`,
-    `${symbols[2]}${capitalized}${years[1]}X`,
-    `Neo${symbols[3]}${capitalized}${symbols[4]}Shield`,
-  ];
+  // Mutation 2: Cyber Mutation (Stretched + Separators)
+  const cyber = `&${base.split('').join('.')}!!X${Math.floor(Math.random() * 9 + 1)}`;
 
-  return suggestions.slice(0, 4);
+  // Mutation 3: Fortified Chaos (High Entropy Transformation)
+  const fortified = `@${capitalized.split('').map(c => Math.random() > 0.7 ? c + '*' : c).join('')}$%${Date.now().toString().slice(-3)}`;
+
+  return { balanced, cyber, fortified };
 };

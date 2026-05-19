@@ -2,31 +2,21 @@
   "manifest_version": 3,
   "name": "Vault-Shield",
   "version": "1.0.0",
-  "description": "Real-time password security assistant with smart suggestions.",
+  "description": "Real-time password intelligence assistant.",
   "permissions": ["activeTab", "storage"],
   "action": {
-    "default_popup": "index.html",
-    "default_icon": {
-      "16": "placeholder.svg",
-      "48": "placeholder.svg",
-      "128": "placeholder.svg"
-    }
-  },
-  "icons": {
-    "16": "placeholder.svg",
-    "48": "placeholder.svg",
-    "128": "placeholder.svg"
+    "default_popup": "index.html"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content/inject.tsx"],
-      "css": ["src/globals.css"]
+      "js": ["assets/inject.js"],
+      "css": ["assets/inject.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/globals.css"],
+      "resources": ["assets/inject.css"],
       "matches": ["<all_urls>"]
     }
   ]
