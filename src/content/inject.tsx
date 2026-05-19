@@ -59,10 +59,10 @@ class VaultShieldManager {
       this.container.id = 'vault-shield-assistant-root';
       const shadow = this.container.attachShadow({ mode: 'open' });
       
-      // Inject Tailwind styles
+      // Inject Tailwind styles - Updated to main.css
       const styleLink = document.createElement('link');
       styleLink.rel = 'stylesheet';
-      styleLink.href = typeof chrome !== 'undefined' && chrome.runtime ? chrome.runtime.getURL('assets/inject.css') : '';
+      styleLink.href = typeof chrome !== 'undefined' && chrome.runtime ? chrome.runtime.getURL('assets/main.css') : '';
       shadow.appendChild(styleLink);
 
       const wrapper = document.createElement('div');

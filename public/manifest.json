@@ -11,12 +11,12 @@
     {
       "matches": ["<all_urls>"],
       "js": ["assets/inject.js"],
-      "css": ["assets/inject.css"]
+      "css": ["assets/main.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["assets/inject.css"],
+      "resources": ["assets/main.css"],
       "matches": ["<all_urls>"]
     }
   ]
