@@ -88,21 +88,26 @@ export const analyzePassword = (password: string): AnalysisResult => {
 };
 
 export const generateMutations = (input: string): string[] => {
-  if (!input || input.length < 2) return [];
-
+  if (!input) return [];
   const base = input.trim();
-  const salt = () => Math.floor(Math.random() * 900 + 100);
-  const symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '?', '++'];
-  const sym = () => symbols[Math.floor(Math.random() * symbols.length)];
+  if (base.length === 0) return [];
 
-  // Mutation 1: Structural Reinforcement
-  const m1 = `&${base.charAt(0).toUpperCase()}${base.slice(1)}${sym()}${sym()}${salt()}`;
+  // Helper to capitalize first letter
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  
+  // Helper to alternate casing
+  const alternateCase = (s: string) => {
+    return s.split('').map((c, i) => i % 2 === 0 ? c.toUpperCase() : c.toLowerCase()).join('');
+  };
 
-  // Mutation 2: Entropy Injection
-  const m2 = `${sym()}${base.split('').map(c => Math.random() > 0.7 ? c.toUpperCase() : c).join('')}${salt()}${sym()}`;
+  // Mutation 1: Structural Reinforcement (e.g., &Anu@2**1$%@009)
+  const m1 = `&${capitalize(base).replace(/(\d+)/, '$1**1')}$%@009`;
 
-  // Mutation 3: Complexity Expansion
-  const m3 = `${base.replace(/[aeiou]/gi, (m) => m + sym())}${salt()}${sym()}`;
+  // Mutation 2: Entropy Injection (e.g., AnU#2107!Secure)
+  const m2 = `${alternateCase(base)}#2107!Secure`;
 
-  return [m1, m2, m3].map(s => s.slice(0, 24)); // Cap length
+  // Mutation 3: Complexity Expansion (e.g., @anu21_X!47)
+  const m3 = `@${base.toLowerCase()}_X!47`;
+
+  return [m1, m2, m3].map(s => s.slice(0, 32)); // Cap length reasonably
 };
