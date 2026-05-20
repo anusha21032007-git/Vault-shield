@@ -123,15 +123,9 @@ class VaultShieldManager {
               this.activeInput.value = val;
             }
 
-            // Dispatch multiple events to satisfy all frameworks (React, Vue, Angular, Svelte, etc.)
             this.activeInput.dispatchEvent(new Event('input', { bubbles: true }));
             this.activeInput.dispatchEvent(new Event('change', { bubbles: true }));
-            this.activeInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
-            
-            // Refocus and keep selection/cursor at the end
             this.activeInput.focus();
-            const len = val.length;
-            this.activeInput.setSelectionRange(len, len);
           }
         }}
       />
