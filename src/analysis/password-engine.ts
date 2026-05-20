@@ -9,7 +9,7 @@ const options = {
 };
 zxcvbnOptions.setOptions(options);
 
-export type StrengthLevel = 'Unsafe' | 'Risky' | 'Secure' | 'Fortified';
+export type StrengthLevel = 'Weak' | 'Moderate' | 'Strong' | 'Very Secure';
 
 export interface ThreatMetric {
   label: string;
@@ -34,7 +34,7 @@ export interface AnalysisResult {
 
 export const analyzePassword = (password: string): AnalysisResult => {
   if (!password) return {
-    score: 0, strength: 'Unsafe', crackAttempts: '0', entropy: 0, warnings: [],
+    score: 0, strength: 'Weak', crackAttempts: '0', entropy: 0, warnings: [],
     threats: [],
     metrics: { randomness: 0, guessProtection: 0, patternSafety: 0, attackResistance: 0 }
   };
@@ -50,8 +50,13 @@ export const analyzePassword = (password: string): AnalysisResult => {
   if (/(.)\1{2,}/.test(password)) warnings.push("Repeated character sequence detected");
   if (/123|abc|qwerty/i.test(password)) warnings.push("Common keyboard pattern detected");
 
+  // Simplified, universally understandable labels
   const strengthMap: Record<number, StrengthLevel> = {
-    0: 'Unsafe', 1: 'Risky', 2: 'Risky', 3: 'Secure', 4: 'Fortified',
+    0: 'Weak', 
+    1: 'Weak', 
+    2: 'Moderate', 
+    3: 'Strong', 
+    4: 'Very Secure',
   };
 
   const getStatus = (val: number): ThreatMetric['status'] => {

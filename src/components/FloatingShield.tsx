@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ShieldAlert, ShieldCheck, ChevronDown, ChevronUp, Copy, Check, Zap, Lock, Info } from 'lucide-react';
-import { analyzePassword, generateSmartSuggestions, AnalysisResult } from '../analysis/password-engine';
+import { Shield, ChevronDown, ChevronUp, Copy, Check, Lock } from 'lucide-react';
+import { analyzePassword, generateMutations, AnalysisResult } from '../analysis/password-engine';
 
 interface FloatingShieldProps {
   passwordValue: string;
@@ -18,7 +18,7 @@ const FloatingShield: React.FC<FloatingShieldProps> = ({ passwordValue, onApply 
   useEffect(() => {
     setAnalysis(analyzePassword(passwordValue));
     if (passwordValue.length > 0) {
-      setSuggestions(generateSmartSuggestions(passwordValue));
+      setSuggestions(generateMutations(passwordValue));
     }
   }, [passwordValue]);
 
@@ -36,9 +36,9 @@ const FloatingShield: React.FC<FloatingShieldProps> = ({ passwordValue, onApply 
 
   const getStrengthColor = () => {
     switch (analysis.strength) {
-      case 'Fortified': return 'text-emerald-400 border-emerald-500/50 bg-emerald-500/10';
-      case 'Secure': return 'text-blue-400 border-blue-500/50 bg-blue-500/10';
-      case 'Risky': return 'text-amber-400 border-amber-500/50 bg-amber-500/10';
+      case 'Very Secure': return 'text-cyan-400 border-cyan-500/50 bg-cyan-500/10';
+      case 'Strong': return 'text-emerald-400 border-emerald-500/50 bg-emerald-500/10';
+      case 'Moderate': return 'text-amber-400 border-amber-500/50 bg-amber-500/10';
       default: return 'text-rose-400 border-rose-500/50 bg-rose-500/10';
     }
   };
