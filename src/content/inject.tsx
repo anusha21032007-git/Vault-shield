@@ -138,8 +138,9 @@ class VaultShieldManager {
     const wrapper = this.container.shadowRoot?.querySelector('.assistant-wrapper') as HTMLElement;
     
     if (wrapper) {
-      wrapper.style.top = `${rect.bottom + 10}px`;
-      wrapper.style.left = `${rect.left}px`;
+      // Position the glowing circle cleanly below-left of the password field
+      wrapper.style.top = `${rect.bottom + 6}px`;
+      wrapper.style.left = `${rect.left + 4}px`;
     }
   }
 }

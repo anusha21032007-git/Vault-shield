@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Popup from './Popup';
-import { Shield, Lock, Zap, Eye, ShieldCheck } from 'lucide-react';
+import FloatingAssistant from '../components/FloatingAssistant';
+import { Shield, Lock, Zap, Eye, ShieldCheck, Sparkles } from 'lucide-react';
 
 const Index = () => {
+  const [password, setPassword] = useState('');
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 font-sans">
       <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -23,8 +26,8 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-6">
-            <Feature icon={<Eye className="h-5 w-5" />} title="Live Analysis" desc="Real-time strength detection as you type." />
-            <Feature icon={<Lock className="h-5 w-5" />} title="Smart Suggestions" desc="Human-friendly, secure alternatives." />
+            <Feature icon={<Eye className="h-5 w-5" />} title="Minimal Indicator" desc="A tiny glowing circle that stays out of your way." />
+            <Feature icon={<Lock className="h-5 w-5" />} title="Smart Mutations" desc="Human-friendly, secure alternatives." />
             <Feature icon={<ShieldCheck className="h-5 w-5" />} title="Local Only" desc="Zero data collection. 100% private." />
             <Feature icon={<Zap className="h-5 w-5" />} title="One-Click Apply" desc="Seamless integration with any form." />
           </div>
@@ -48,17 +51,37 @@ const Index = () => {
       </div>
 
       {/* Demo Section */}
-      <div className="mt-24 w-full max-w-2xl bg-slate-900/50 border border-slate-800 rounded-3xl p-8 text-center space-y-6">
-        <h3 className="text-xl font-bold text-white">Try the Analysis Engine</h3>
-        <div className="space-y-4">
-          <input 
-            type="password" 
-            placeholder="Type a password to test..." 
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-          />
-          <p className="text-slate-500 text-sm">
-            In the real extension, the floating dialog appears right next to this field.
+      <div className="mt-24 w-full max-w-2xl bg-slate-900/30 border border-slate-800/50 rounded-3xl p-8 text-center space-y-6 backdrop-blur-sm">
+        <div className="space-y-2">
+          <h3 className="text-xl font-bold text-white flex items-center justify-center gap-2">
+            <Sparkles className="h-5 w-5 text-indigo-400" /> Try the Minimal Indicator
+          </h3>
+          <p className="text-slate-400 text-sm">
+            Type a password below. Hover or click the glowing circle to open the interactive analyzer.
           </p>
+        </div>
+        
+        <div className="relative max-w-md mx-auto space-y-4 text-left">
+          <div className="relative">
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Type a password to test..." 
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+            />
+          </div>
+          
+          {/* Live Floating Assistant Demo */}
+          <div className="flex items-center gap-2 pl-1">
+            <FloatingAssistant 
+              passwordValue={password} 
+              onApply={(val) => setPassword(val)} 
+            />
+            <span className="text-[10px] text-slate-500 font-medium italic">
+              Interactive Security Indicator
+            </span>
+          </div>
         </div>
       </div>
     </div>
