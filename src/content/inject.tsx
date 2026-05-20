@@ -108,30 +108,27 @@ class VaultShieldManager {
     }
   }
 
-  private renderAssistant() {
+  private renderAssistant(overrideValue?: string) {
     if (!this.root || !this.activeInput || !this.isEnabled) return;
+
+    const currentValue = overrideValue !== undefined ? overrideValue : this.activeInput.value;
 
     this.root.render(
       <FloatingAssistant 
-        passwordValue={this.activeInput.value} 
+        passwordValue={currentValue} 
         onApply={(val) => {
           if (this.activeInput) {
             const input = this.activeInput;
             
-            // Robust value setter for React/Vue/Angular/Vanilla
-            const valueSetter = Object.getOwnPropertyDescriptor(input, 'value')?.set;
-            const prototype = Object.getPrototypeOf(input);
-            const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
-            
-            if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
-              prototypeValueSetter.call(input, val);
-            } else if (valueSetter) {
-              valueSetter.call(input, val);
+            // Extremely robust native setter to bypass React/Vue/Angular state tracking
+            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+            if (nativeSetter) {
+              nativeSetter.call(input, val);
             } else {
               input.value = val;
             }
 
-            // Dispatch events
+            // Dispatch events to trigger framework state updates
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
             
@@ -142,8 +139,13 @@ class VaultShieldManager {
             
             input.focus();
 
-            // Explicitly re-render assistant to reflect the new value immediately
-            this.renderAssistant();
+            // Explicitly re-render assistant with the new value immediately
+            this.renderAssistant(val);
+
+            // Also schedule a re-render after a short delay to capture any framework-level updates
+            setTimeout(() => {
+              this.renderAssistant();
+            }, 50);
           }
         }}
       />
