@@ -8,57 +8,69 @@ export interface MutationCategory {
 }
 
 export class PasswordMutationEngine {
-  private static nouns = ['Volt', 'Shield', 'River', 'Sky', 'Quantum', 'Peak', 'Nova', 'Crest', 'Ridge', 'Glade', 'Spire', 'Forge'];
-  private static adjectives = ['Swift', 'Calm', 'Bright', 'Deep', 'Vast', 'Bold', 'True', 'Pure', 'Safe', 'Wise', 'Keen', 'Grand'];
+  private static humanWords = ['Sky', 'Nova', 'Orbit', 'River', 'Volt', 'Echo', 'Blue', 'Titan', 'Apex', 'Star', 'Zenith', 'Dawn'];
 
   /**
    * Generates human-centered, memorable password mutations based on a user's memory anchor.
+   * Focuses on premium, recognizable chunks and typing rhythm.
    */
   public static generate(input: string): MutationCategory[] {
     if (!input) return [];
     const clean = input.trim();
     if (clean.length === 0) return [];
 
-    // Extract a memory anchor (alphabetic part of the input)
-    const anchorMatch = clean.match(/[a-zA-Z]+/);
-    const anchor = anchorMatch ? anchorMatch[0] : 'Vault';
-    const capitalizedAnchor = anchor.charAt(0).toUpperCase() + anchor.slice(1).toLowerCase();
+    // Parse the input for alphabetical anchor and numerical parts
+    const anchorMatch = clean.match(/[a-zA-Z]+/g);
+    const primaryAnchor = anchorMatch ? anchorMatch[0] : 'Anu';
+    const secondaryAnchor = (anchorMatch && anchorMatch.length > 1) ? anchorMatch[1] : '';
+    
+    // Capitalize the anchor properly for readability
+    const capAnchor = primaryAnchor.charAt(0).toUpperCase() + primaryAnchor.slice(1).toLowerCase();
+    const capSecAnchor = secondaryAnchor ? secondaryAnchor.toUpperCase() : '';
 
-    // Extract any numbers present in the original input
     const numberMatch = clean.match(/\d+/);
     const originalNum = numberMatch ? numberMatch[0] : '21';
 
-    // Select random words for generation
-    const noun = this.nouns[Math.abs(this.hashCode(clean)) % this.nouns.length];
-    const adj = this.adjectives[Math.abs(this.hashCode(clean + 'adj')) % this.adjectives.length];
+    // Seeded word selection
+    const seed = Math.abs(this.hashCode(clean));
+    const word1 = this.humanWords[seed % this.humanWords.length];
+    const word2 = this.humanWords[(seed + 3) % this.humanWords.length];
 
-    // 1. Familiar Mode: Easiest to remember, closest to original structure
-    const familiar = `${capitalizedAnchor}${noun}#${originalNum}`;
-    
-    // 2. Balanced Mode: Ideal entropy/memory balance (Default)
-    const balanced = `${adj}_${capitalizedAnchor}#${originalNum}!`;
+    // 1. Familiar: Easiest to remember. Closest to original, adds a clean premium word.
+    // e.g. "AnuBlue#21"
+    const familiar = `${capAnchor}${word1}#${originalNum}`;
+    const familiarExplanation = "Keeps your original memory anchor and appends a simple, memorable suffix.";
 
-    // 3. Fortress Mode: Highest security, lower memorability
-    const fortress = `${adj}${capitalizedAnchor}${noun}@${originalNum}x!`;
+    // 2. Balanced: Ideal entropy and memory balance. Breaks suffix patterns.
+    // e.g. "Anu21!SHA#Orbit" or "SkyAnu!21"
+    const balanced = capSecAnchor 
+      ? `${capAnchor}${originalNum}!${capSecAnchor}#${word2}`
+      : `Sky${capAnchor}!${originalNum}`;
+    const balancedExplanation = "Inserts middle entropy and removes predictable suffix patterns.";
+
+    // 3. Fortress: Maximum safety, structurally safe but still memorable.
+    // e.g. "AnuRiver@47"
+    const fortress = `${word1}${capAnchor}_${word2}@${originalNum}`;
+    const fortressExplanation = "Combines multiple human-friendly anchors with structural division.";
 
     return [
       {
         password: familiar.slice(0, 32),
         type: 'Familiar',
         description: 'Easiest to remember',
-        explanation: 'Preserves your original memory anchor and appends a simple, structured word.'
+        explanation: familiarExplanation
       },
       {
         password: balanced.slice(0, 32),
         type: 'Balanced',
         description: 'Ideal balance',
-        explanation: 'Inserts a clean adjective prefix and breaks predictable suffix patterns.'
+        explanation: balancedExplanation
       },
       {
         password: fortress.slice(0, 32),
         type: 'Fortress',
         description: 'Maximum security',
-        explanation: 'Combines multiple word anchors with complex separators to resist advanced GPU cracking.'
+        explanation: fortressExplanation
       }
     ];
   }

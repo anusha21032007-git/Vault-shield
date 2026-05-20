@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Sparkles, Lock, AlertTriangle, Check, X, ShieldCheck, ShieldAlert, HelpCircle } from 'lucide-react';
+import { Shield, Sparkles, Lock, AlertTriangle, Check, X, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { PasswordMutationEngine, MutationCategory } from '../utils/PasswordMutationEngine';
 import { MemorabilityEngine, MemorabilityMetrics } from '../utils/MemorabilityEngine';
 import { ThreatSimulationEngine, ThreatGuess } from '../utils/ThreatSimulationEngine';
@@ -23,10 +23,12 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
   const [guesses, setGuesses] = useState<ThreatGuess[]>([]);
   const [isBreached, setIsBreached] = useState(false);
   const [similarityWarning, setSimilarityWarning] = useState<string | null>(null);
+  
   const [isOpen, setIsOpen] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
   const [appliedIndex, setAppliedIndex] = useState<number | null>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
-
   const hasPassword = passwordValue.length > 0;
 
   useEffect(() => {
@@ -52,7 +54,6 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
     return () => clearTimeout(debouncedAnalysis);
   }, [passwordValue, hasPassword]);
 
-  // Close on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -64,21 +65,18 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
   }, []);
 
   const handleApply = (text: string, index: number) => {
-    // Instantly update local analysis and suggestions to avoid any lag/desync
     const newMetrics = MemorabilityEngine.analyze(text);
     setMetrics(newMetrics);
     setSuggestions(PasswordMutationEngine.generate(text));
     setAppliedIndex(index);
     
-    // Call parent apply handler to update the actual DOM input
     onApply(text);
 
     setTimeout(() => {
       setAppliedIndex(null);
-    }, 1500);
+    }, 1200);
   };
 
-  // Determine color scheme based on strength
   const getStrengthConfig = () => {
     if (!hasPassword) {
       return {
@@ -133,25 +131,25 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
 
   const config = getStrengthConfig();
 
+  // Pick top 2 suggestions to keep layout compact (Familiar and Balanced)
+  const topSuggestions = suggestions.slice(0, 2);
+
   return (
     <div ref={containerRef} className="relative font-sans text-slate-200 pointer-events-auto select-none">
-      {/* Minimal Glowing Security Circle */}
+      {/* Minimal Indicator Button */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
           onMouseEnter={() => setIsOpen(true)}
           className="relative flex h-5 w-5 items-center justify-center rounded-full focus:outline-none transition-transform duration-300 hover:scale-110"
-          title="Vault-Shield Security Status"
+          title="Vault-Shield Protection"
         >
-          {/* Outer Pulse Aura */}
           <span className={`absolute inline-flex h-full w-full rounded-full animate-ping opacity-75 duration-1000 ${config.pulse}`} />
-          
-          {/* Inner Glowing Core */}
           <span className={`relative inline-flex rounded-full h-3 w-3 transition-all duration-500 ${config.bg} ${config.glow}`} />
         </button>
       </div>
 
-      {/* Compact Intelligent Analyzer Card */}
+      {/* Lightweight Assistant Panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -161,15 +159,15 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
             transition={{ duration: 0.15, ease: 'easeOut' }}
             className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/95 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-[999999]"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-900 bg-slate-900/20">
+            {/* Minimal Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-900 bg-slate-900/10">
               <div className="flex items-center gap-2">
-                <Shield className={`h-4.5 w-4.5 ${config.color}`} />
-                <span className="text-xs font-bold tracking-wider text-slate-300">Vault-Shield</span>
+                <Shield className={`h-4 w-4 ${config.color}`} />
+                <span className="text-xs font-bold text-slate-300">Vault-Shield</span>
               </div>
               <div className="flex items-center gap-2">
                 {hasPassword && (
-                  <div className={`text-[10px] font-bold px-2 py-0.5 rounded border ${config.badge}`}>
+                  <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${config.badge}`}>
                     {metrics.label}
                   </div>
                 )}
@@ -179,102 +177,110 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                     setIsOpen(false);
                   }}
                   className="p-1 hover:bg-slate-800/50 rounded-lg text-slate-500 hover:text-slate-300 transition-all"
-                  title="Close"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 space-y-4 max-h-[420px] overflow-y-auto scrollbar-thin">
+            {/* Compact Mode Content (No scroll layout, beautifully optimized) */}
+            <div className="p-4 space-y-3.5">
               {!hasPassword ? (
-                <div className="py-6 text-center space-y-3">
-                  <Lock className="h-10 w-10 text-slate-600 mx-auto animate-pulse" />
-                  <p className="text-sm font-semibold text-slate-300">Ready to Analyze</p>
-                  <p className="text-xs text-slate-500 max-w-[220px] mx-auto leading-relaxed">
-                    Type at least 1 character to begin real-time security analysis.
+                <div className="py-5 text-center space-y-2">
+                  <Lock className="h-8 w-8 text-slate-600 mx-auto animate-pulse" />
+                  <p className="text-xs font-semibold text-slate-300">Ready to Assist</p>
+                  <p className="text-[10px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
+                    Type a character to instantly analyze and generate memorable, secure upgrades.
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Current Password Display */}
-                  <div className="space-y-1 bg-slate-900/40 p-3 rounded-xl border border-slate-800/60">
-                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Current Password</p>
-                    <p className="text-xs font-mono text-indigo-300 truncate select-all">{passwordValue}</p>
-                  </div>
-
-                  {/* Warnings */}
+                  {/* Warnings in Compact Mode */}
                   {isBreached && (
-                    <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/5 p-2.5 rounded-xl border border-rose-500/10">
-                      <AlertTriangle className="h-4 w-4 shrink-0" />
-                      <span className="font-medium">This pattern appears frequently in breach datasets.</span>
+                    <div className="flex items-center gap-2 text-[10px] text-rose-400 bg-rose-500/5 p-2 rounded-lg border border-rose-500/10">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                      <span className="font-medium">Pattern appears in breach databases.</span>
                     </div>
                   )}
 
-                  {similarityWarning && (
-                    <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/5 p-2.5 rounded-xl border border-amber-500/10">
-                      <AlertTriangle className="h-4 w-4 shrink-0" />
-                      <span className="font-medium">{similarityWarning}</span>
-                    </div>
-                  )}
-
-                  {/* Password Structure Heatmap */}
-                  <PasswordHeatmap passwordValue={passwordValue} />
-
-                  {/* Memorability Intelligence System */}
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-medium text-slate-400">Memorability Intelligence</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <MetricCard label="Security Score" value={metrics.securityScore} />
-                      <MetricCard label="Memorability" value={metrics.memorabilityScore} />
-                      <MetricCard label="Predictability Resistance" value={metrics.predictabilityResistance} />
-                      <MetricCard label="Entropy Score" value={metrics.entropyScore} />
-                    </div>
-                  </div>
-
-                  {/* Suggested Passwords */}
-                  {suggestions.length > 0 && (
+                  {/* Top 2 High-Quality Memorable Suggestions */}
+                  {topSuggestions.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[11px] font-medium text-slate-400">Suggested passwords</p>
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Suggested passwords</p>
                       <div className="space-y-2">
-                        {suggestions.map((s, i) => (
-                          <div key={i} className="group flex flex-col gap-1.5 rounded-xl bg-slate-900/50 p-3 border border-slate-800/60 hover:border-slate-700 transition-all">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-mono text-slate-200 truncate max-w-[160px]">{s.password}</span>
+                        {topSuggestions.map((s, i) => (
+                          <div key={i} className="group flex flex-col gap-1 rounded-xl bg-slate-900/40 p-2.5 border border-slate-800/60 hover:border-slate-700/80 transition-all">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-bold text-slate-200 truncate select-all">{s.password}</span>
                               <button
                                 onClick={() => handleApply(s.password, i)}
-                                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all shrink-0 ${
                                   appliedIndex === i 
                                     ? 'bg-emerald-500/20 text-emerald-400' 
                                     : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20'
                                 }`}
                               >
                                 {appliedIndex === i ? (
-                                  <><Check className="h-3 w-3" /> Applied ✓</>
+                                  <><Check className="h-3 w-3" /> Applied</>
                                 ) : (
                                   <><Sparkles className="h-3 w-3" /> Apply</>
                                 )}
                               </button>
                             </div>
-                            <p className="text-[10px] text-slate-500 leading-relaxed">{s.explanation}</p>
+                            <p className="text-[10px] text-slate-500 leading-normal">{s.explanation}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Evolution Timeline */}
-                  <EvolutionTimeline original={passwordValue} mutations={suggestions.map(s => s.password)} />
+                  {/* More Insights Progressive Disclosure Button */}
+                  <button
+                    onClick={() => setShowInsights(!showInsights)}
+                    className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg border border-slate-800/80 bg-slate-900/10 text-[10px] font-bold text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all"
+                  >
+                    {showInsights ? (
+                      <>Hide insights <ChevronUp className="h-3.5 w-3.5" /></>
+                    ) : (
+                      <>More insights <ChevronDown className="h-3.5 w-3.5" /></>
+                    )}
+                  </button>
 
-                  {/* Attacker Simulation Panel */}
-                  <AttackerSimulation guesses={guesses} />
+                  {/* Expanded Insights Panel (Smooth vertical expand) */}
+                  <AnimatePresence>
+                    {showInsights && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden pt-2 border-t border-slate-900 space-y-4 max-h-[260px] overflow-y-auto scrollbar-thin"
+                      >
+                        {/* Structure Heatmap */}
+                        <PasswordHeatmap passwordValue={passwordValue} />
+
+                        {/* Detailed Metrics */}
+                        <div className="space-y-1.5">
+                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Security & Memorability</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <MetricCard label="Security Score" value={metrics.securityScore} />
+                            <MetricCard label="Memorability" value={metrics.memorabilityScore} />
+                          </div>
+                        </div>
+
+                        {/* Evolution timeline & simulated attacker vectors */}
+                        <EvolutionTimeline original={passwordValue} mutations={suggestions.map(s => s.password)} />
+                        <AttackerSimulation guesses={guesses} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </>
               )}
 
-              {/* Local Privacy Trust Layer */}
-              <div className="flex items-center gap-2 text-[10px] text-slate-500 pt-3 border-t border-slate-900">
-                <Lock className="h-3.5 w-3.5 text-slate-400" />
-                <span>100% Local Analysis. Your passwords never leave your browser.</span>
+              {/* Minimalist Local Privacy Layer */}
+              <div className="flex items-center gap-1.5 text-[9px] text-slate-500 pt-2.5 border-t border-slate-900">
+                <Lock className="h-3 w-3 text-slate-400" />
+                <span>100% Local Analysis. Private & secure.</span>
               </div>
             </div>
           </motion.div>
@@ -285,10 +291,10 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
 };
 
 const MetricCard = ({ label, value }: { label: string; value: number }) => (
-  <div className="rounded-xl bg-slate-900/30 p-2.5 border border-slate-800/60 space-y-1">
-    <div className="flex justify-between items-center">
-      <span className="text-[10px] text-slate-500 font-medium">{label}</span>
-      <span className="text-[10px] font-mono font-bold text-slate-300">{value}%</span>
+  <div className="rounded-lg bg-slate-900/30 p-2 border border-slate-800/60 space-y-1">
+    <div className="flex justify-between items-center text-[9px]">
+      <span className="text-slate-500 font-medium">{label}</span>
+      <span className="font-mono font-bold text-slate-300">{value}%</span>
     </div>
     <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
       <div 
