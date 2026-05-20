@@ -1,7 +1,9 @@
+"use client";
+
 import React, { useState } from 'react';
 import Popup from './Popup';
 import FloatingAssistant from '../components/FloatingAssistant';
-import { Shield, Lock, Zap, Eye, ShieldCheck, Sparkles } from 'lucide-react';
+import { Shield, Lock, Zap, Eye, ShieldCheck, Sparkles, ShieldAlert } from 'lucide-react';
 
 const Index = () => {
   const [password, setPassword] = useState('');
@@ -14,9 +16,9 @@ const Index = () => {
         <div className="space-y-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wider uppercase">
-              <Zap className="h-3 w-3" /> Next-Gen Security
+              <Zap className="h-3 w-3" /> Human-Centered Security
             </div>
-            <h1 className="text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+            <h1 className="text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight">
               Your Digital <span className="text-indigo-500">Vault</span>, <br />
               Reinforced.
             </h1>
@@ -37,10 +39,10 @@ const Index = () => {
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
             {/* Decorative Glow */}
-            <div className="absolute -inset-4 bg-indigo-500/20 blur-3xl rounded-full" />
+            <div className="absolute -inset-4 bg-indigo-500/5 blur-3xl rounded-full" />
             
             {/* Popup Preview */}
-            <div className="relative rounded-3xl border border-slate-800 shadow-2xl shadow-black overflow-hidden">
+            <div className="relative rounded-3xl border border-slate-900 shadow-2xl shadow-black overflow-hidden">
               <Popup />
             </div>
           </div>
