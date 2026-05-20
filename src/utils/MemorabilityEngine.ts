@@ -16,7 +16,7 @@ export class MemorabilityEngine {
         memorabilityScore: 0,
         predictabilityResistance: 0,
         entropyScore: 0,
-        label: 'Predictable'
+        label: 'Weak'
       };
     }
 
@@ -43,27 +43,22 @@ export class MemorabilityEngine {
     const predictabilityResistance = Math.max(10, 100 - predictabilityPenalty);
 
     // Calculate Memorability Score
-    // Human-centered passwords with readable words are highly memorable
     const wordCount = (password.match(/[A-Z][a-z]+/g) || []).length;
     let memorabilityScore = 50;
     if (wordCount >= 2) memorabilityScore += 30;
-    if (len < 16) memorabilityScore += 15; // Shorter is easier to remember
-    if (hasSpecial) memorabilityScore -= 10; // Special characters reduce memorability slightly
+    if (len < 16) memorabilityScore += 15; 
+    if (hasSpecial) memorabilityScore -= 10; 
     memorabilityScore = Math.min(100, Math.max(20, memorabilityScore));
 
     // Calculate Overall Security Score
     const securityScore = Math.min(100, Math.round((entropyScore * 0.6) + (predictabilityResistance * 0.4)));
 
-    // Determine Smart Label
-    let label = 'Predictable';
-    if (securityScore > 85) {
-      label = 'High Resistance';
-    } else if (securityScore > 70) {
-      label = 'Strongly Balanced';
-    } else if (securityScore > 50) {
-      label = 'Unsafe Structure';
-    } else if (securityScore > 30) {
-      label = 'Easily Guessable';
+    // Determine Smart, Confidence-building Labels
+    let label = 'Weak';
+    if (securityScore > 75) {
+      label = 'Strong';
+    } else if (securityScore > 40) {
+      label = 'Balanced';
     }
 
     return {
