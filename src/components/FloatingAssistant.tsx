@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Sparkles, Lock, AlertTriangle, Activity, Cpu, ShieldAlert, ShieldCheck, HelpCircle, Check } from 'lucide-react';
+import { Shield, Sparkles, Lock, AlertTriangle, Activity, Cpu, ShieldAlert, ShieldCheck, HelpCircle, Check, X } from 'lucide-react';
 import { analyzePassword, generateMutations, AnalysisResult } from '../analysis/password-engine';
 
 interface FloatingAssistantProps {
@@ -126,8 +126,17 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                 <Shield className={`h-4 w-4 ${config.color}`} />
                 <span className="text-[10px] font-black tracking-[0.15em] text-slate-400 uppercase">VAULT-SHIELD</span>
               </div>
-              <div className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${config.badge}`}>
-                {analysis.strength}
+              <div className="flex items-center gap-2">
+                <div className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${config.badge}`}>
+                  {analysis.strength}
+                </div>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-slate-800/80 rounded-lg text-slate-400 hover:text-white transition-colors"
+                  title="Close Panel"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
@@ -150,14 +159,22 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                   <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Intelligent Mutations</p>
                   <div className="space-y-1.5">
                     {suggestions.map((s, i) => (
-                      <div key={i} className="flex items-center justify-between rounded-lg bg-slate-900/50 p-2 border border-slate-900 hover:border-slate-800 transition-all">
-                        <span className="text-xs font-mono text-slate-300 truncate max-w-[160px]">{s}</span>
+                      <div 
+                        key={i} 
+                        onClick={() => handleApply(s, i)}
+                        className="flex items-center justify-between rounded-lg bg-slate-900/50 p-2 border border-slate-900 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all cursor-pointer group"
+                        title="Click to apply this suggestion"
+                      >
+                        <span className="text-xs font-mono text-slate-300 truncate max-w-[160px] group-hover:text-indigo-300 transition-colors">{s}</span>
                         <button
-                          onClick={() => handleApply(s, i)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent double trigger
+                            handleApply(s, i);
+                          }}
                           className={`flex items-center gap-1 px-2.5 py-1 rounded text-[9px] font-bold transition-all ${
                             appliedIndex === i 
                               ? 'bg-emerald-500/20 text-emerald-400' 
-                              : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20'
+                              : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 group-hover:text-indigo-300'
                           }`}
                         >
                           {appliedIndex === i ? (
