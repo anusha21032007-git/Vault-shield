@@ -42,8 +42,14 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
   }, []);
 
   const handleApply = (text: string, index: number) => {
-    onApply(text);
+    // Instantly update local analysis and suggestions to avoid any lag/desync
+    setAnalysis(analyzePassword(text));
+    setSuggestions(generateMutations(text));
     setAppliedIndex(index);
+    
+    // Call parent apply handler to update the actual DOM input
+    onApply(text);
+
     setTimeout(() => {
       setAppliedIndex(null);
     }, 1000);

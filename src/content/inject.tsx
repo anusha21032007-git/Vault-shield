@@ -116,16 +116,31 @@ class VaultShieldManager {
         passwordValue={this.activeInput.value} 
         onApply={(val) => {
           if (this.activeInput) {
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
-            if (nativeInputValueSetter) {
-              nativeInputValueSetter.call(this.activeInput, val);
+            const input = this.activeInput;
+            
+            // Robust value setter for React/Vue/Angular/Vanilla
+            const valueSetter = Object.getOwnPropertyDescriptor(input, 'value')?.set;
+            const prototype = Object.getPrototypeOf(input);
+            const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+            
+            if (prototypeValueSetter && valueSetter !== prototypeValueSetter) {
+              prototypeValueSetter.call(input, val);
+            } else if (valueSetter) {
+              valueSetter.call(input, val);
             } else {
-              this.activeInput.value = val;
+              input.value = val;
             }
 
-            this.activeInput.dispatchEvent(new Event('input', { bubbles: true }));
-            this.activeInput.dispatchEvent(new Event('change', { bubbles: true }));
-            this.activeInput.focus();
+            // Dispatch events
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Keyboard events
+            input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
+            input.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: 'Enter' }));
+            input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
+            
+            input.focus();
           }
         }}
       />
