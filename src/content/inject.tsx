@@ -141,6 +141,9 @@ class VaultShieldManager {
             input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
             
             input.focus();
+
+            // Explicitly re-render assistant to reflect the new value immediately
+            this.renderAssistant();
           }
         }}
       />
