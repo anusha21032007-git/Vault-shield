@@ -12,13 +12,9 @@ export const StructureComparison: React.FC<StructureComparisonProps> = ({ origin
 
   // Let's analyze and render characters with beautiful highlighted attributes
   const renderHighlightedChars = (str: string, orig: string) => {
-    const origLower = orig.toLowerCase();
-    
     return str.split('').map((char, index) => {
-      // Find if character is changed, a newly inserted symbol, or newly capitalized
       const origChar = orig[index];
       const isSymbol = /[^a-zA-Z0-9]/.test(char);
-      const isDigit = /\d/.test(char);
       
       let highlightClass = "text-slate-300";
       let tooltip = "Original pattern";
@@ -63,17 +59,11 @@ export const StructureComparison: React.FC<StructureComparisonProps> = ({ origin
   };
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-xl bg-slate-900/20 border border-slate-900 p-2 text-left">
-      <div className="flex items-center justify-between text-[9px] text-slate-500 font-medium">
-        <span>Original Structure</span>
-        <span className="font-mono text-[10px] truncate max-w-[140px] text-slate-400 line-through">{original}</span>
-      </div>
-      <div className="flex items-center justify-between text-[9px] text-slate-500 font-medium border-t border-slate-900/40 pt-1.5">
-        <span>Evolved Version</span>
-        <span className="font-mono text-[10px] truncate max-w-[140px] select-all">
-          {renderHighlightedChars(improved, original)}
-        </span>
-      </div>
+    <div className="flex items-center justify-between text-[9px] text-slate-500 font-medium rounded-xl bg-slate-900/20 border border-slate-900 p-2 text-left">
+      <span>Evolved Version</span>
+      <span className="font-mono text-[10px] truncate max-w-[180px] select-all">
+        {renderHighlightedChars(improved, original)}
+      </span>
     </div>
   );
 };

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Sparkles, Lock, AlertTriangle, Check, X, ShieldCheck, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Shield, Sparkles, Lock, AlertTriangle, Check, X, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { PasswordMutationEngine, MutationCategory } from '../utils/PasswordMutationEngine';
 import { MemorabilityEngine, MemorabilityMetrics } from '../utils/MemorabilityEngine';
 import { ThreatSimulationEngine, ThreatGuess } from '../utils/ThreatSimulationEngine';
@@ -200,6 +200,12 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                     </div>
                   )}
 
+                  {/* Single Existing Password Display Mentioned ONCE At the Top */}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/40 border border-slate-900 text-[10px] text-slate-400">
+                    <span className="font-semibold uppercase tracking-wider text-[9px] text-slate-500">existing password</span>
+                    <span className="font-mono font-bold text-slate-300 select-all tracking-wide truncate max-w-[180px]">{passwordValue}</span>
+                  </div>
+
                   {/* Suggestion Cards */}
                   {topSuggestions.length > 0 && (
                     <div className="space-y-2.5">
@@ -244,7 +250,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                                 </button>
                               </div>
 
-                              {/* Character-level Visual Comparison View */}
+                              {/* Compact Character-level Visual Comparison View (Does not repeat original structure row) */}
                               <StructureComparison original={passwordValue} improved={s.password} />
 
                               <p className="text-[10px] text-slate-400 leading-normal italic px-0.5">
