@@ -30,17 +30,6 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
     return () => clearTimeout(debouncedAnalysis);
   }, [passwordValue, hasPassword]);
 
-  // Close on outside click
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
-
   const handleApply = (text: string, index: number) => {
     onApply(text);
     setAppliedIndex(index);
@@ -129,7 +118,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
             initial={{ opacity: 0, y: 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/95 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] z-[999999]"
           >
             {/* Header */}
@@ -149,7 +138,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                     e.stopPropagation();
                     setIsOpen(false);
                   }}
-                  className="p-1 hover:bg-slate-800/50 rounded-lg text-slate-500 hover:text-slate-300 transition-all"
+                  className="p-1.5 hover:bg-rose-500/10 hover:text-rose-400 rounded-lg text-slate-500 transition-all duration-200 border border-transparent hover:border-rose-500/20 shadow-sm hover:shadow-[0_0_8px_rgba(244,63,94,0.3)]"
                   title="Close"
                 >
                   <X className="h-3.5 w-3.5" />
