@@ -252,10 +252,6 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
 
                               {/* Compact Character-level Visual Comparison View (Does not repeat original structure row) */}
                               <StructureComparison original={passwordValue} improved={s.password} />
-
-                              <p className="text-[10px] text-slate-400 leading-normal italic px-0.5">
-                                {s.explanation}
-                              </p>
                             </motion.div>
                           );
                         })}
