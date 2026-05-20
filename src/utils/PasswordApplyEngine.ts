@@ -2,16 +2,19 @@
 
 export class PasswordApplyEngine {
   /**
-   * Safely injects a password into a target input element, bypassing framework state tracking
-   * and triggering all necessary synthetic events so the website registers the change.
+   * Inject password into target element bypassing virtual DOM state tracking.
+   * Dispatches both native events and framework-specific trigger hooks.
    */
   public static apply(input: HTMLInputElement, value: string): boolean {
     if (!input) return false;
 
     try {
+      // 1. Ensure the element is focused
+      input.focus();
+
       const oldValue = input.value;
 
-      // 1. Get the native HTMLInputElement value setter from the prototype
+      // 2. Override native prototype value setter (essential for React 15/16+)
       const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
       
       if (nativeSetter) {
@@ -20,31 +23,49 @@ export class PasswordApplyEngine {
         input.value = value;
       }
 
-      // 2. Bypass React 16+ value tracking by updating the internal tracker
+      // 3. Update React's internal value tracker if it exists
       const tracker = (input as any)._valueTracker;
       if (tracker) {
         tracker.setValue(oldValue);
       }
 
-      // 3. Dispatch native events to trigger framework state updates (React, Vue, Angular)
-      const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+      // 4. Dispatch InputEvent with standard inputType and data properties (Vue & React 17/18 compatibility)
+      const inputEvent = new InputEvent('input', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertText',
+        data: value
+      });
       input.dispatchEvent(inputEvent);
 
-      const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+      // 5. Dispatch standard change event
+      const changeEvent = new Event('change', { 
+        bubbles: true, 
+        cancelable: true 
+      });
       input.dispatchEvent(changeEvent);
 
-      // 4. Dispatch keyboard events for maximum compatibility with strict validation forms
-      input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter' }));
-      input.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, cancelable: true, key: 'Enter' }));
-      input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'Enter' }));
+      // 6. Trigger keyboard simulation to satisfy strict validator listeners (e.g. key up detection)
+      const keyEvents = ['keydown', 'keypress', 'keyup'];
+      keyEvents.forEach((type) => {
+        const keyEv = new KeyboardEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          key: 'a',
+          code: 'KeyA',
+          keyCode: 65,
+          which: 65
+        });
+        input.dispatchEvent(keyEv);
+      });
 
-      // 5. Ensure the input is focused
+      // 7. Dispatch blur then focus again to trigger any dirty/validation states
+      input.dispatchEvent(new Event('blur', { bubbles: true }));
       input.focus();
 
       return true;
     } catch (error) {
-      console.error('[VaultShield] Failed to apply password via engine:', error);
-      // Fallback to direct assignment
+      console.error('[VaultShield] Error applying password with engine:', error);
       input.value = value;
       return false;
     }

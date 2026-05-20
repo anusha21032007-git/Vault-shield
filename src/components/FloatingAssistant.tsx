@@ -130,8 +130,6 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
   };
 
   const config = getStrengthConfig();
-
-  // Pick top 2 suggestions to keep layout compact (Familiar and Balanced)
   const topSuggestions = suggestions.slice(0, 2);
 
   return (
@@ -183,7 +181,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
               </div>
             </div>
 
-            {/* Compact Mode Content (No scroll layout, beautifully optimized) */}
+            {/* Compact Mode Content */}
             <div className="p-4 space-y-3.5">
               {!hasPassword ? (
                 <div className="py-5 text-center space-y-2">
@@ -246,34 +244,26 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                     )}
                   </button>
 
-                  {/* Expanded Insights Panel (Smooth vertical expand) */}
-                  <AnimatePresence>
-                    {showInsights && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden pt-2 border-t border-slate-900 space-y-4 max-h-[260px] overflow-y-auto scrollbar-thin"
-                      >
-                        {/* Structure Heatmap */}
-                        <PasswordHeatmap passwordValue={passwordValue} />
+                  {/* Expanded Insights Panel using reliable DOM state expansion */}
+                  {showInsights && (
+                    <div className="pt-3 border-t border-slate-900 space-y-4 max-h-[260px] overflow-y-auto scrollbar-thin opacity-100 transition-opacity duration-300">
+                      {/* Structure Heatmap */}
+                      <PasswordHeatmap passwordValue={passwordValue} />
 
-                        {/* Detailed Metrics */}
-                        <div className="space-y-1.5">
-                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Security & Memorability</p>
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <MetricCard label="Security Score" value={metrics.securityScore} />
-                            <MetricCard label="Memorability" value={metrics.memorabilityScore} />
-                          </div>
+                      {/* Detailed Metrics */}
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Security & Memorability</p>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <MetricCard label="Security Score" value={metrics.securityScore} />
+                          <MetricCard label="Memorability" value={metrics.memorabilityScore} />
                         </div>
+                      </div>
 
-                        {/* Evolution timeline & simulated attacker vectors */}
-                        <EvolutionTimeline original={passwordValue} mutations={suggestions.map(s => s.password)} />
-                        <AttackerSimulation guesses={guesses} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      {/* Evolution timeline & simulated attacker vectors */}
+                      <EvolutionTimeline original={passwordValue} mutations={suggestions.map(s => s.password)} />
+                      <AttackerSimulation guesses={guesses} />
+                    </div>
+                  )}
                 </>
               )}
 
