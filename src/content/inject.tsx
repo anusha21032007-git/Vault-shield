@@ -119,30 +119,37 @@ class VaultShieldManager {
         onApply={(val) => {
           if (this.activeInput) {
             const input = this.activeInput;
+            const oldValue = input.value;
             
-            // Extremely robust native setter to bypass React/Vue/Angular state tracking
-            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+            // 1. Get the native HTMLInputElement value setter
+            const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
             if (nativeSetter) {
               nativeSetter.call(input, val);
             } else {
               input.value = val;
             }
 
-            // Dispatch events to trigger framework state updates
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
+            // 2. Bypass React 16+ value tracking by updating the internal tracker with the previous value
+            const tracker = (input as any)._valueTracker;
+            if (tracker) {
+              tracker.setValue(oldValue);
+            }
+
+            // 3. Dispatch real input and change events to trigger framework state updates
+            input.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
             
-            // Keyboard events
-            input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
-            input.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: 'Enter' }));
-            input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }));
+            // 4. Dispatch keyboard events for maximum compatibility
+            input.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, key: 'Enter' }));
+            input.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, cancelable: true, key: 'Enter' }));
+            input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, key: 'Enter' }));
             
             input.focus();
 
-            // Explicitly re-render assistant with the new value immediately
+            // 5. Explicitly re-render assistant with the new value immediately
             this.renderAssistant(val);
 
-            // Also schedule a re-render after a short delay to capture any framework-level updates
+            // 6. Schedule a re-render after a short delay to capture any framework-level updates
             setTimeout(() => {
               this.renderAssistant();
             }, 50);
