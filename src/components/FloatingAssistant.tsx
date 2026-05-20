@@ -11,7 +11,6 @@ import { BreachPatternEngine } from '../utils/BreachPatternEngine';
 import { PasswordHeatmap } from './PasswordHeatmap';
 import { EvolutionTimeline } from './EvolutionTimeline';
 import { AttackerSimulation } from './AttackerSimulation';
-import { StructureComparison } from './StructureComparison';
 
 interface FloatingAssistantProps {
   passwordValue: string;
@@ -249,9 +248,6 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                                   )}
                                 </button>
                               </div>
-
-                              {/* Compact Character-level Visual Comparison View (Does not repeat original structure row) */}
-                              <StructureComparison original={passwordValue} improved={s.password} />
                             </motion.div>
                           );
                         })}
