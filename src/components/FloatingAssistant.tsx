@@ -8,9 +8,6 @@ import { MemorabilityEngine, MemorabilityMetrics } from '../utils/MemorabilityEn
 import { ThreatSimulationEngine, ThreatGuess } from '../utils/ThreatSimulationEngine';
 import { SimilarityDetectionEngine } from '../utils/SimilarityDetectionEngine';
 import { BreachPatternEngine } from '../utils/BreachPatternEngine';
-import { PasswordHeatmap } from './PasswordHeatmap';
-import { EvolutionTimeline } from './EvolutionTimeline';
-import { AttackerSimulation } from './AttackerSimulation';
 
 interface FloatingAssistantProps {
   passwordValue: string;
@@ -56,7 +53,9 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (!containerRef.current) return;
+      const path = e.composedPath ? e.composedPath() : [];
+      if (!containerRef.current.contains(e.target as Node) && !path.includes(containerRef.current)) {
         setIsOpen(false);
       }
     };
@@ -124,13 +123,17 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
   const topSuggestions = suggestions.slice(0, 2);
 
   return (
-    <div ref={containerRef} className="relative font-sans text-slate-200 pointer-events-auto select-none">
+    <div 
+      ref={containerRef} 
+      className="relative font-sans text-slate-200 pointer-events-auto select-none"
+      onMouseDown={(e) => e.preventDefault()}
+    >
       
       {/* Minimal Health Dot Indicator */}
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
-          onMouseEnter={() => setIsOpen(true)}
           className="relative flex h-5 w-5 items-center justify-center rounded-full focus:outline-none transition-transform duration-300 hover:scale-110"
           title="Vault-Shield Status Indicator"
         >
@@ -147,10 +150,10 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="absolute left-0 mt-2.5 w-80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/95 backdrop-blur-xl shadow-[0_16px_48px_rgba(0,0,0,0.65)] z-[999999]"
+            className="absolute left-0 mt-2.5 w-80 h-[420px] flex flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/95 backdrop-blur-xl shadow-[0_16px_48px_rgba(0,0,0,0.65)] z-[999999]"
           >
             {/* Elegant Header with Simple Confidence Indicator */}
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-900 bg-slate-900/10">
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-900 bg-slate-900/10 shrink-0">
               <div className="flex items-center gap-2">
                 <Shield className={`h-4 w-4 ${config.color} transition-colors duration-500`} />
                 <span className="text-xs font-bold text-slate-300 tracking-tight">Vault-Shield Assistant</span>
@@ -166,6 +169,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                   </motion.div>
                 )}
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsOpen(false);
@@ -178,7 +182,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
             </div>
 
             {/* Main Interactive Workspace */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
               {!hasPassword ? (
                 <div className="py-6 text-center space-y-2.5">
                   <div className="h-10 w-10 rounded-full bg-slate-900/60 flex items-center justify-center mx-auto border border-slate-800/60">
@@ -231,10 +235,14 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                                   : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-700/80'
                               }`}
                             >
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-xs font-mono font-bold text-slate-200 select-all tracking-wide">{s.password}</span>
+                              <div className="flex items-center justify-between gap-2 min-w-0">
+                                <span className="text-xs font-mono font-bold text-slate-200 select-all tracking-wide truncate flex-1 text-left">{s.password}</span>
                                 <button
-                                  onClick={() => handleApply(s.password, i)}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleApply(s.password, i);
+                                  }}
                                   className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold transition-all shrink-0 ${
                                     isApplied 
                                       ? 'bg-emerald-500/20 text-emerald-300' 
@@ -257,6 +265,7 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
 
                   {/* More Insights Disclosure */}
                   <button
+                    type="button"
                     onClick={() => setShowInsights(!showInsights)}
                     className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-slate-800 bg-slate-900/10 text-[10px] font-bold text-slate-400 hover:text-slate-200 hover:border-slate-700/80 transition-all"
                   >
@@ -275,23 +284,30 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="overflow-hidden pt-2 border-t border-slate-900/60 space-y-4 max-h-[250px] overflow-y-auto scrollbar-thin"
+                        className="overflow-hidden pt-2 border-t border-slate-900/60 space-y-4"
                       >
-                        {/* Structure Heatmap */}
-                        <PasswordHeatmap passwordValue={passwordValue} />
 
                         {/* Confidence Metric Rows */}
                         <div className="space-y-2">
                           <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Metrics</p>
                           <div className="grid grid-cols-2 gap-2">
-                            <MetricCard label="Familiarity Score" value={metrics.memorabilityScore} description="Ease of recall" />
-                            <MetricCard label="Strength" value={metrics.securityScore} description="Cracking protection" />
+                            <InsightCard 
+                              label="Memory Confidence" 
+                              value={metrics.memoryConfidence} 
+                              description="Natural recall ease" 
+                              color={metrics.memorabilityScore > 60 ? 'text-cyan-400' : metrics.memorabilityScore > 40 ? 'text-amber-400' : 'text-rose-400'}
+                              icon={Sparkles}
+                            />
+                            <InsightCard 
+                              label="Guess Difficulty" 
+                              value={metrics.guessDifficulty} 
+                              description="Cracking resistance" 
+                              color={metrics.securityScore > 60 ? 'text-emerald-400' : metrics.securityScore > 40 ? 'text-amber-400' : 'text-rose-400'}
+                              icon={ShieldCheck}
+                            />
                           </div>
                         </div>
 
-                        {/* Evolution timeline & simulated vectors */}
-                        <EvolutionTimeline original={passwordValue} mutations={suggestions.map(s => s.password)} />
-                        <AttackerSimulation guesses={guesses} />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -311,21 +327,16 @@ const FloatingAssistant: React.FC<FloatingAssistantProps> = ({ passwordValue, on
   );
 };
 
-const MetricCard = ({ label, value, description }: { label: string; value: number; description: string }) => (
-  <div className="rounded-xl bg-slate-900/30 p-2.5 border border-slate-800/60 space-y-1">
-    <div className="flex justify-between items-center text-[9px]">
-      <span className="text-slate-400 font-bold">{label}</span>
-      <span className="font-mono text-slate-300 font-bold">{value}%</span>
+const InsightCard = ({ label, value, description, color, icon: Icon }: any) => (
+  <div className="rounded-xl bg-slate-900/30 p-2.5 border border-slate-800/60 flex flex-col gap-1 transition-all hover:bg-slate-900/50">
+    <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+      <Icon className={`h-3 w-3 ${color}`} />
+      {label}
     </div>
-    <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-      <div 
-        className={`h-full rounded-full transition-all duration-700 ${
-          value > 70 ? 'bg-emerald-500' : value > 40 ? 'bg-cyan-500' : 'bg-rose-500'
-        }`}
-        style={{ width: `${value}%` }}
-      />
+    <div className={`font-mono text-xs font-bold tracking-tight ${color}`}>
+      {value}
     </div>
-    <p className="text-[8px] text-slate-500">{description}</p>
+    <p className="text-[8px] text-slate-500 leading-relaxed">{description}</p>
   </div>
 );
 
