@@ -26,37 +26,43 @@ export class PasswordMutationEngine {
     const baseSymbol = originalSymbols.length > 0 ? originalSymbols[0] : '@';
     const altSymbol = baseSymbol === '@' ? '#' : '!';
 
-    // Helper: Smart capitalization of a character in a specific index
-    const smartCapitalize = (str: string, index: number) => {
-      if (str.length <= index) return str.charAt(0).toUpperCase() + str.slice(1);
-      return str.slice(0, index) + str.charAt(index).toUpperCase() + str.slice(index + 1);
+    // Deterministic entropy helpers based on input to guarantee same output for same input
+    const seed = clean.length + letters.charCodeAt(0) + digits.charCodeAt(0);
+    const getSym = (offset: number) => {
+      const syms = ['#', '!', '$', '%', '*', '+', '?'];
+      return syms[(seed + offset) % syms.length];
+    };
+    const getSuffix = (offset: number) => {
+      const sufs = ['x', 'Q', 'K', 'X9', 'M', 'v2', 'Z'];
+      return sufs[(seed + offset) % sufs.length];
     };
 
-    // 1. Familiar: Strategic Capitalization + Controlled Suffix
-    // Examples: "karThi@09", "Karthi@09_x"
-    const capitalizedLetters = smartCapitalize(letters, Math.min(3, letters.length - 1));
-    const familiar = `${capitalizedLetters}${baseSymbol}${digits}_x`;
-    const familiarExplanation = "Preserves your original structure while adding a clean, short suffix.";
+    // Helper: Capitalize specific indices
+    const capIndices = (str: string, indices: number[]) => {
+      return str.split('').map((char, i) => 
+        indices.includes(i) ? char.toUpperCase() : char.toLowerCase()
+      ).join('');
+    };
 
-    // 2. Balanced: Structural Chunking + Symbol Relocation
-    // Examples: "Kar_thi09@", "kar_thi@09"
-    const midIndex = Math.floor(letters.length / 2);
-    const chunkedLetters = letters.length > 2
-      ? letters.slice(0, midIndex) + '_' + letters.slice(midIndex)
-      : letters;
-    const balancedLetters = chunkedLetters.charAt(0).toUpperCase() + chunkedLetters.slice(1);
-    const balanced = `${balancedLetters}${baseSymbol}${digits}`;
-    const balancedExplanation = "Introduces structural chunking for high memory retention.";
+    // 1. Familiar: Controlled capitalization & compact suffix mutation
+    // Example: "AnU@21#4x"
+    const famLetters = capIndices(letters, [0, 2]);
+    const familiar = `${famLetters}${baseSymbol}${digits}${getSym(1)}${Math.floor((seed % 9)) + 1}${getSuffix(1).toLowerCase()}`;
+    const familiarExplanation = "Strategically capitalizes specific letters and appends a compact, unpredictable suffix.";
 
-    // 3. Fortress: Middle Entropy Insertion + Symbol Shift
-    // Examples: "karXthi09!", "Ka9rthi@"
-    const midChar = 'X';
-    const middleEntropyLetters = letters.length > 2
-      ? letters.slice(0, midIndex) + midChar + letters.slice(midIndex)
-      : letters + midChar;
-    const fortressLetters = middleEntropyLetters.charAt(0).toUpperCase() + middleEntropyLetters.slice(1);
-    const fortress = `${fortressLetters}${digits}${altSymbol}`;
-    const fortressExplanation = "Inserts middle-position entropy to resist dictionary attacks.";
+    // 2. Balanced: Middle-position symbol insertion & unpredictable character placement
+    // Example: "aN_u@21!K"
+    const midIdx = Math.max(1, Math.floor(letters.length / 2));
+    const balLeft = capIndices(letters.slice(0, midIdx), [1]);
+    const balRight = letters.slice(midIdx).toLowerCase();
+    const balanced = `${balLeft}_${balRight}${baseSymbol}${digits}${getSym(2)}${getSuffix(2).toUpperCase()}`;
+    const balancedExplanation = "Inserts a middle-position separator and applies controlled capitalization for structural strength.";
+
+    // 3. Fortress: Original identity preserved with middle entropy and dynamic suffix
+    // Example: "Anu#21_X9"
+    const fortLetters = capIndices(letters, [0]);
+    const fortress = `${fortLetters}${altSymbol}${digits}_${getSuffix(3).toUpperCase()}${Math.floor((seed % 9)) + 1}`;
+    const fortressExplanation = "Preserves primary identity while shifting symbols and adding an entropy-rich suffix block.";
 
     return [
       {
