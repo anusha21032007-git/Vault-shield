@@ -64,8 +64,60 @@ class VaultShieldManager {
     if (!this.container) {
       this.container = document.createElement('div');
       this.container.id = 'vault-shield-assistant-root';
+      // Make the host element layout-invisible so it cannot affect the host page
+      this.container.style.cssText = 'all: initial !important; position: absolute !important; width: 0 !important; height: 0 !important; overflow: visible !important; pointer-events: none !important;';
+
       const shadow = this.container.attachShadow({ mode: 'open' });
-      
+
+      // Isolation reset: fully decouple extension UI from host page styles.
+      // :host prevents layout interference; .assistant-wrapper resets inherited
+      // properties (font, color, line-height) that cross Shadow DOM boundaries.
+      const isolationStyle = document.createElement('style');
+      isolationStyle.textContent = `
+        :host {
+          all: initial !important;
+          position: absolute !important;
+          width: 0 !important;
+          height: 0 !important;
+          overflow: visible !important;
+          pointer-events: none !important;
+          opacity: 1 !important;
+          filter: none !important;
+          transform: none !important;
+          clip: auto !important;
+          clip-path: none !important;
+          visibility: visible !important;
+        }
+
+        .assistant-wrapper {
+          all: initial;
+          display: block;
+          position: fixed;
+          z-index: 2147483647;
+          pointer-events: none;
+          font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+            "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+          font-size: 16px;
+          line-height: 1.5;
+          color: #cbd5e1;
+          letter-spacing: normal;
+          word-spacing: normal;
+          text-transform: none;
+          text-indent: 0;
+          text-shadow: none;
+          text-align: left;
+          direction: ltr;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        .assistant-wrapper *, .assistant-wrapper *::before, .assistant-wrapper *::after {
+          box-sizing: border-box;
+        }
+      `;
+      shadow.appendChild(isolationStyle);
+
+      // Load Tailwind utilities inside Shadow DOM — fully scoped, cannot leak to host page
       const styleLink = document.createElement('link');
       styleLink.rel = 'stylesheet';
       styleLink.href = typeof chrome !== 'undefined' && chrome.runtime ? chrome.runtime.getURL('assets/main.css') : '';
@@ -73,7 +125,6 @@ class VaultShieldManager {
 
       const wrapper = document.createElement('div');
       wrapper.className = 'assistant-wrapper';
-      wrapper.style.cssText = 'position: fixed; z-index: 2147483647; pointer-events: none;';
       shadow.appendChild(wrapper);
 
       document.body.appendChild(this.container);
